@@ -34,9 +34,25 @@ export const Worker = () => {
     register,
     handleSubmit,
     setValue,
+    setError,
     formState: { errors },
   } = useForm<WorkerI>()
 
+  const validateSpaces = (fieldName: keyof WorkerI) => (value: string) => {
+    if (value.trim() === '') {
+      setError(fieldName, {
+        type: 'onlySpaces', 
+      });
+      return false; 
+    }
+    if (value.trim().length < 5) { 
+      setError(fieldName, {
+        type: 'minLength'
+      })
+      return false;
+    }
+    return true; 
+  };
   const params = useParams()
   const navigate = useNavigate()
 
@@ -46,7 +62,7 @@ export const Worker = () => {
 
   useEffect(() => {
     const worker = workers.data.filter(worker => worker.id === Number(params.id))[0]
-    
+
     if (!worker) {
       navigate('/')
       return
@@ -74,14 +90,17 @@ export const Worker = () => {
       <form className={styles.from_container} onSubmit={handleSubmit(handleFormSubmit)} >
         <input
           className={errors.name ? styles.error : ''}
-
-          {...register("name", { required: true, minLength: 5 })}
+          {...register("name", { required: true, minLength: 5, validate: validateSpaces('name') })}
           type="text"
           placeholder="Имя" />
         <InputMask
           className={errors.phone ? styles.error : ''}
           maskChar={null}
-          {...register("phone", { required: true, maxLength: 17, minLength: 17 })}
+          {...register("phone", {
+            required: true,
+            maxLength: 17,
+            minLength: 17,
+          })}
           mask="+7 (999) 999-9999"
           placeholder="+7 (___) ___-____"
 
@@ -106,6 +125,7 @@ export const Worker = () => {
       </form>
       {errors.name?.type === 'required' ? <p role="alert">{'Введите имя сотрудника'}</p> : ''}
       {errors.name?.type === 'minLength' ? <p role="alert">{'Минимальная длина имени - 5 символов'}</p> : ''}
+      {errors.name?.type === 'validate' ? <p role="alert">{'Имя сотрудника не может состоять из пробелом'}</p> : ''}
 
       {errors.phone?.type === 'required' ? <p role="alert">{'Введите телефон'}</p> : ''}
       {errors.phone?.type === 'minLength' ? <p role="alert">{'Длина телефона - 17 символов'}</p> : ''}

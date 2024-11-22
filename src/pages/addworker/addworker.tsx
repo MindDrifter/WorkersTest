@@ -32,6 +32,7 @@ export const AddWorker = () => {
   const {
     register,
     handleSubmit,
+    setError,
     formState: { errors },
   } = useForm<WorkerI>()
 
@@ -43,6 +44,21 @@ export const AddWorker = () => {
     dispatch(addWorker({ ...data }))
     navigate('/')
   }
+  const validateSpaces = (fieldName: keyof WorkerI) => (value: string) => {
+    if (value.trim() === '') {
+      setError(fieldName, {
+        type: 'onlySpaces', 
+      });
+      return false; 
+    }
+    if (value.trim().length < 5) { 
+      setError(fieldName, {
+        type: 'minLength'
+      })
+      return false;
+    }
+    return true; 
+  };
 
   return (
     <div className={styles.container}>
@@ -50,8 +66,8 @@ export const AddWorker = () => {
       <h1>Добавить сотрудника </h1>
       <form className={styles.from_container} onSubmit={handleSubmit(handleFormSubmit)} >
         <input
-          className={errors.phone ? styles.error : ''}
-          {...register("name", { required: true, minLength: 5 })}
+          className={errors.name ? styles.error : ''}
+          {...register("name", { required: true, minLength: 5, validate:validateSpaces('name') })}
           type="text"
           placeholder="Имя"
           aria-invalid={errors.name ? "true" : "false"}
@@ -80,6 +96,7 @@ export const AddWorker = () => {
       </form>
       {errors.name?.type === 'required' ? <p role="alert">{'Введите имя сотрудника'}</p> : ''}
       {errors.name?.type === 'minLength' ? <p role="alert">{'Минимальная длина имени - 5 символов'}</p> : ''}
+      {errors.name?.type === 'validate' ?  <p role="alert">{'Имя сотрудника не может состоять из пробелом'}</p> : ''}
 
       {errors.phone?.type === 'required' ? <p role="alert">{'Введите телефон'}</p> : ''}
       {errors.phone?.type === 'minLength' ? <p role="alert">{'Длина телефона - 17 символов'}</p> : ''}
@@ -88,6 +105,8 @@ export const AddWorker = () => {
       {errors.birthday?.type === 'minLength' ? <p role="alert">{'Длина поля дня рождения - 10 символов'}</p> : ''}
 
       {errors.role?.type === 'required' ? <p role="alert">{'Введите роль сотрудника'}</p> : ''}
+
+  
     </div>
 
 
